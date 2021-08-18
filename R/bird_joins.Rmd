@@ -1,0 +1,85 @@
+---
+title: "bird_joins.Rmd"
+author: "Connor Flynn"
+date: "8/17/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(here)
+library(tidyverse)
+```
+
+# Setup
+
+```{r}
+birds <- read_csv(here("data", "52_pp52_birds_1.csv"))
+```
+
+```{r}
+sites <- read_csv(here("data", "52_pp52_sites_1.csv"))
+```
+
+```{r}
+surveys <- read_csv(here("data", "52_pp52_surveys_1.csv"))
+```
+
+```{r}
+taxalist <- read_csv(here("data", "52_pp52_taxalist_1.csv"))
+```
+
+# Task 1
+
+```{r}
+birds_subset <- bird_observations %>% 
+  filter(species_id %in% c("BHCO", "RWBL")) %>% 
+  filter(site_id %in% c("LI-W", "NU-C"))
+
+
+birds_left <- left_join(birds_subset, sites)
+
+birds_left <- left_join(birds_left, taxalist)
+  
+```
+
+
+```{r}
+birds_full <- full_join(birds_subset, sites)
+
+
+```
+
+```{r}
+birds_inner <- inner_join(birds_subset, taxalist, by = "species_id")
+```
+
+# Task 2
+
+```{r}
+birds <- birds %>% 
+  #rename(bird_obs_notes = notes) %>% 
+   full_join(y = taxalist) %>% 
+   full_join(y = surveys) %>%
+    full_join(y = sites) %>% 
+  select(survey_date, common_name, park_name, bird_count)
+
+# if updating a subset (y = right dataframe when joining)
+```
+
+```{r}
+birds_date <- birds %>% 
+  mutate(survey_month = lubridate::month(survey_date)) 
+
+birds_date <- birds_date %>% 
+  dplyr::relocate(survey_month, .after = survey_date) %>% 
+  group_by(park_name, survey_month) %>% 
+  summarise(
+    sum_by_month_park = n() 
+  )
+  
+
+```
+
+
+
